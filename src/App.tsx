@@ -64,6 +64,7 @@ function Workspace({
   }
 
   async function openTabs(urls: string[]) {
+    const currentTab = await chrome.tabs.query({ active: true });
     const tabs = await chrome.tabs.query({ active: false });
     const tabIds: number[] = [];
     tabs.map((tab) => {
@@ -73,9 +74,13 @@ function Workspace({
     });
 
     await chrome.tabs.remove(tabIds);
-    urls.map((oneUrl) => {
+    await urls.map((oneUrl) => {
       chrome.tabs.create({ url: oneUrl });
     });
+
+    if (currentTab[0].id) {
+      await chrome.tabs.remove(currentTab[0].id);
+    }
   }
 
   useEffect(() => {
