@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "name": "Workplace",
+  "action": {
+    "default_title": "Click to open panel"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "script.js"
+  },
+  "permissions": ["scripting", "storage", "sidePanel", "tabs"],
+  "host_permissions": ["https://*/*", "https://*/*"],
+  "icons": {
+    "16": "shopr-favicon.png",
+    "48": "shopr-favicon.png",
+    "128": "shopr-favicon.png"
+  }
+}
