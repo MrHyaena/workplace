@@ -21,6 +21,7 @@ window.addEventListener(
 );
 
 type workspaceType = {
+  settings: "keepAll" | "keepCurrent" | "keepNone";
   name: string;
   urls: string[];
 };
@@ -40,6 +41,9 @@ function Workspace({
   const [urls, setUrls] = useState<string[]>(workspace.urls);
   const [dragover, setDragover] = useState<boolean>(false);
   const [toggleDelete, setToggleDelete] = useState<boolean>(false);
+  const [settings, setSettings] = useState<
+    "keepAll" | "keepCurrent" | "keepNone"
+  >(workspace.settings);
 
   function deleteUrl(item: string) {
     const newArray = urls.filter((url) => item != url);
@@ -76,13 +80,18 @@ function Workspace({
       }
     });
 
-    await chrome.tabs.remove(tabIds);
     await urls.map((oneUrl) => {
       chrome.tabs.create({ url: oneUrl });
     });
 
-    if (currentTab[0].id) {
-      await chrome.tabs.remove(currentTab[0].id);
+    if (settings == "keepCurrent") {
+      await chrome.tabs.remove(tabIds);
+    }
+    if (settings == "keepNone") {
+      await chrome.tabs.remove(tabIds);
+      if (currentTab[0].id) {
+        await chrome.tabs.remove(currentTab[0].id);
+      }
     }
   }
 
@@ -93,12 +102,13 @@ function Workspace({
     );
 
     workspacesArray[workspaceIndex].urls = urls;
+    workspacesArray[workspaceIndex].settings = settings;
     setWorkspaces([...workspacesArray]);
-  }, [urls]);
+  }, [urls, settings]);
 
   return (
     <>
-      <div className="bg-zinc-800 rounded-lg flex flex-col gap-5 overflow-hidden">
+      <div className="bg-zinc-800 rounded-lg flex flex-col gap-2 overflow-hidden">
         <div className="group grid grid-cols-[1fr_3fr_1fr] items-center">
           <CiLink
             onClick={(e) => {
@@ -116,6 +126,11 @@ function Workspace({
                 setToggle(!toggle);
               }}
             />
+            <p className=" font-semibold">
+              {settings == "keepAll" && "A"}
+              {settings == "keepCurrent" && "C"}
+              {settings == "keepNone" && "N"}
+            </p>
           </div>
           {toggleDelete ? (
             <div className="flex justify-end mr-3 gap-3">
@@ -146,46 +161,80 @@ function Workspace({
         </div>
 
         {toggle && (
-          <div className="flex flex-col items-stretch p-2">
-            <div
-              onDragEnter={() => {
-                setDragover(true);
-              }}
-              onDragLeave={() => {
-                setDragover(false);
-              }}
-              onDrop={(event) => {
-                setDragover(false);
-                event.preventDefault();
-                dropUrl(event);
-              }}
-              className={`p-4 ${
-                dragover ? "bg-zinc-600" : "bg-zinc-700"
-              } text-center rounded-lg border-2 border-zinc-500 text-zinc-400`}
-            >
-              Zde vložte odkaz
+          <>
+            <div className="flex items-center justify-center gap-2 font-semibold">
+              <p
+                onClick={() => {
+                  setSettings("keepNone");
+                }}
+                className={`${
+                  settings == "keepNone" ? "text-emerald-500" : ""
+                } cursor-pointer`}
+              >
+                N
+              </p>
+              <p
+                onClick={() => {
+                  setSettings("keepCurrent");
+                }}
+                className={`${
+                  settings == "keepCurrent" ? "text-emerald-500" : ""
+                } cursor-pointer`}
+              >
+                C
+              </p>
+              <p
+                onClick={() => {
+                  setSettings("keepAll");
+                }}
+                className={`${
+                  settings == "keepAll" ? "text-emerald-500" : ""
+                } cursor-pointer`}
+              >
+                A
+              </p>
             </div>
-            {urls.map((item) => {
-              return (
-                <>
-                  <div className="grid grid-cols-[4fr_1fr] items-center py-2">
-                    <div className="overflow-hidden">
-                      <a href={item} className="text-nowrap">
-                        {item}
-                      </a>
+            <div className="flex flex-col items-stretch p-2">
+              <div
+                onDragEnter={() => {
+                  setDragover(true);
+                }}
+                onDragLeave={() => {
+                  setDragover(false);
+                }}
+                onDrop={(event) => {
+                  setDragover(false);
+                  event.preventDefault();
+                  dropUrl(event);
+                }}
+                className={`p-4 ${
+                  dragover ? "bg-zinc-600" : "bg-zinc-700"
+                } text-center rounded-lg border-2 border-zinc-500 text-zinc-400`}
+              >
+                Zde vložte odkaz
+              </div>
+              {urls.map((item) => {
+                return (
+                  <>
+                    <div className="grid grid-cols-[4fr_1fr] items-center py-2">
+                      <div className="overflow-hidden">
+                        <a href={item} className="text-nowrap">
+                          {item}
+                        </a>
+                      </div>
+                      <TiDeleteOutline
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteUrl(item);
+                        }}
+                        className="justify-self-end hover:text-rose-400 cursor-pointer"
+                      />
                     </div>
-                    <TiDeleteOutline
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteUrl(item);
-                      }}
-                      className="justify-self-end hover:text-rose-400 cursor-pointer"
-                    />
-                  </div>
-                </>
-              );
-            })}
-          </div>
+                  </>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </>
@@ -249,7 +298,7 @@ function App() {
               onClick={() => {
                 setWorkspaces([
                   ...workspaces,
-                  { name: newWorkspaceName, urls: [] },
+                  { name: newWorkspaceName, urls: [], settings: "keepAll" },
                 ]);
                 setNewWorkspaceName("");
               }}
