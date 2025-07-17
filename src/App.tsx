@@ -4,6 +4,7 @@ import { FaPen } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { TiDeleteOutline } from "react-icons/ti";
+import { localization } from "./localization";
 
 window.addEventListener(
   "dragover",
@@ -28,11 +29,25 @@ type workspaceType = {
 
 type workspacesType = workspaceType[];
 
+type langType = {
+  addWorkspacePlaceholder: string;
+  addLinkPlaceholder: string;
+  advice: {
+    heading: string;
+    texts: {
+      letter: string;
+      text: string;
+    }[];
+  };
+};
+
 function Workspace({
+  texts,
   workspaces,
   workspace,
   setWorkspaces,
 }: {
+  texts: langType;
   workspaces: workspaceType[];
   workspace: workspaceType;
   setWorkspaces: React.Dispatch<React.SetStateAction<workspacesType>>;
@@ -44,19 +59,24 @@ function Workspace({
   const [settings, setSettings] = useState<
     "keepAll" | "keepCurrent" | "keepNone"
   >(workspace.settings);
+  const [link, setLink] = useState<string>("");
 
   function deleteUrl(item: string) {
     const newArray = urls.filter((url) => item != url);
     setUrls([...newArray]);
   }
 
+  function addUrl(url: string) {
+    if (!url.includes("http")) {
+      url = "https://" + url;
+    }
+    console.log(url);
+    setUrls([...urls, url]);
+  }
+
   function dropUrl(event: React.DragEvent<HTMLDivElement>) {
     let data = event.dataTransfer.getData("text");
-    if (!data.includes("http")) {
-      data = "https://" + data;
-    }
-    console.log(data);
-    setUrls([...urls, data]);
+    addUrl(data);
     return;
   }
 
@@ -109,7 +129,11 @@ function Workspace({
   return (
     <>
       <div className="bg-zinc-800 rounded-lg flex flex-col gap-2 overflow-hidden">
-        <div className="group grid grid-cols-[1fr_3fr_1fr] items-center">
+        <div
+          className={`group grid grid-cols-[1fr_3fr_1fr] items-center ${
+            toggle && "border-b border-y-zinc-600"
+          }`}
+        >
           <CiLink
             onClick={(e) => {
               e.stopPropagation();
@@ -195,7 +219,18 @@ function Workspace({
               </p>
             </div>
             <div className="flex flex-col items-stretch p-2">
-              <div
+              <input
+                value={link}
+                onChange={(e) => {
+                  setLink(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.code == "Enter") {
+                    addUrl(link);
+                    setLink("");
+                  }
+                }}
+                placeholder={texts.addLinkPlaceholder}
                 onDragEnter={() => {
                   setDragover(true);
                 }}
@@ -210,27 +245,26 @@ function Workspace({
                 className={`p-4 ${
                   dragover ? "bg-zinc-600" : "bg-zinc-700"
                 } text-center rounded-lg border-2 border-zinc-500 text-zinc-400`}
-              >
-                Zde vložte odkaz
-              </div>
+              ></input>
               {urls.map((item) => {
                 return (
-                  <>
-                    <div className="grid grid-cols-[4fr_1fr] items-center py-2">
-                      <div className="overflow-hidden">
-                        <a href={item} className="text-nowrap">
-                          {item}
-                        </a>
-                      </div>
-                      <TiDeleteOutline
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteUrl(item);
-                        }}
-                        className="justify-self-end hover:text-rose-400 cursor-pointer"
-                      />
+                  <div
+                    key={item}
+                    className="grid grid-cols-[4fr_1fr] items-center py-2"
+                  >
+                    <div className="overflow-hidden">
+                      <a href={item} className="text-nowrap">
+                        {item}
+                      </a>
                     </div>
-                  </>
+                    <TiDeleteOutline
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteUrl(item);
+                      }}
+                      className="justify-self-end hover:text-rose-400 cursor-pointer"
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -244,6 +278,9 @@ function Workspace({
 function App() {
   const [workspaces, setWorkspaces] = useState<workspacesType>([]);
   const [newWorkspaceName, setNewWorkspaceName] = useState<string>("");
+  const [lang, setLang] = useState<"cs" | "en">("cs");
+  const [texts, setTexts] = useState<langType>(localization.cs);
+  const [adviceToggle, setAdviceToggle] = useState<boolean>(false);
 
   useEffect(() => {
     async function getData() {
@@ -269,15 +306,60 @@ function App() {
   return (
     <>
       <div
-        className={`bg-zinc-900 h-screen grid grid-rows-[80px_1fr] font-mono text-white`}
+        className={`bg-zinc-900 min-h-screen grid grid-rows-[80px_1fr] font-mono text-white`}
       >
-        <div className="flex justify-center items-center ">
-          <p className="font-semibold text-xl">LINKER</p>
+        <div className="grid grid-cols-[1fr_3fr_1fr] items-center p-3">
+          {adviceToggle && (
+            <div className="absolute top-20 left-0 w-full p-2">
+              <div className="bg-zinc-800 p-5 rounded-lg flex flex-col gap-4">
+                <p>{texts.advice.heading}</p>
+                {texts.advice.texts.map((item) => {
+                  return (
+                    <div key={item.letter} className="flex gap-2">
+                      <p>{item.letter}:</p>
+                      <p>{item.text}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <div className="flex">
+            <p
+              onMouseEnter={() => {
+                setAdviceToggle(true);
+              }}
+              onMouseLeave={() => {
+                setAdviceToggle(false);
+              }}
+            >
+              ?
+            </p>
+          </div>
+          <p className="font-semibold text-xl col-start-2 justify-self-center">
+            LINKER
+          </p>
+          <p
+            onClick={() => {
+              if (lang == "cs") {
+                setTexts(localization.en);
+                setLang("en");
+              } else {
+                setTexts(localization.cs);
+                setLang("cs");
+              }
+            }}
+            className="justify-self-end cursor-pointer hover:text-emerald-500"
+          >
+            {lang}
+          </p>
         </div>
         <div className="flex flex-col gap-5 items-stretch p-3">
           {workspaces.map((item) => {
             return (
               <Workspace
+                key={item.name}
+                texts={texts}
                 workspaces={workspaces}
                 workspace={item}
                 setWorkspaces={setWorkspaces}
@@ -290,7 +372,7 @@ function App() {
                 setNewWorkspaceName(e.target.value);
               }}
               value={newWorkspaceName}
-              placeholder="Přidejte workspace"
+              placeholder={texts.addWorkspacePlaceholder}
               type="text"
               className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg"
             ></input>
