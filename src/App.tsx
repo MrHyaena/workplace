@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { CiLink } from "react-icons/ci";
 import { FaPen } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
+import { MdKeyboardBackspace } from "react-icons/md";
 import { TiDeleteOutline } from "react-icons/ti";
 
 window.addEventListener(
@@ -37,6 +39,7 @@ function Workspace({
   const [toggle, setToggle] = useState<boolean>(false);
   const [urls, setUrls] = useState<string[]>(workspace.urls);
   const [dragover, setDragover] = useState<boolean>(false);
+  const [toggleDelete, setToggleDelete] = useState<boolean>(false);
 
   function deleteUrl(item: string) {
     const newArray = urls.filter((url) => item != url);
@@ -45,7 +48,7 @@ function Workspace({
 
   function dropUrl(event: React.DragEvent<HTMLDivElement>) {
     let data = event.dataTransfer.getData("text");
-    if (data[0] != "h" && data[1] != "t" && data[2] != "t" && data[3] != "p") {
+    if (!data.includes("http")) {
       data = "https://" + data;
     }
     console.log(data);
@@ -95,32 +98,61 @@ function Workspace({
 
   return (
     <>
-      <div className="bg-zinc-800 p-2 rounded-lg flex flex-col gap-5">
-        <div className="grid grid-cols-[1fr_3fr_1fr] items-center">
+      <div className="bg-zinc-800 rounded-lg flex flex-col gap-5 overflow-hidden">
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            openTabs(urls);
+          }}
+          className="group grid grid-cols-[1fr_3fr_1fr] items-center cursor-pointer"
+        >
           <CiLink
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               openTabs(urls);
             }}
-            className="text-zinc-200 text-3xl hover:text-emerald-500 cursor-pointer"
+            className="text-zinc-200 text-3xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]"
           />
           <div className="flex items-center gap-3 justify-self-center">
             <p className=" font-semibold ">{workspace.name}</p>
             <FaPen
               className="cursor-pointer hover:text-emerald-500 justify-self-end"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setToggle(!toggle);
               }}
             />
           </div>
-          <TiDeleteOutline
-            className="cursor-pointer hover:text-rose-400 justify-self-end"
-            onClick={() => {
-              deleteWorkspace();
-            }}
-          />
+          {toggleDelete ? (
+            <div className="flex justify-end mr-3 gap-3">
+              <MdKeyboardBackspace
+                className="cursor-pointer hover:text-emerald-400 justify-self-end"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setToggleDelete(false);
+                }}
+              />
+              <IoClose
+                className="cursor-pointer hover:text-rose-400 justify-self-end"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteWorkspace();
+                }}
+              />
+            </div>
+          ) : (
+            <TiDeleteOutline
+              className="cursor-pointer hover:text-rose-400 justify-self-end mr-3"
+              onClick={(e) => {
+                e.stopPropagation();
+                setToggleDelete(true);
+              }}
+            />
+          )}
         </div>
+
         {toggle && (
-          <div className="flex flex-col items-stretch">
+          <div className="flex flex-col items-stretch p-2">
             <div
               onDragEnter={() => {
                 setDragover(true);
@@ -149,7 +181,8 @@ function Workspace({
                       </a>
                     </div>
                     <TiDeleteOutline
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         deleteUrl(item);
                       }}
                       className="justify-self-end hover:text-rose-400 cursor-pointer"

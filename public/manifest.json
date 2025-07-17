@@ -14,8 +14,8 @@
   "permissions": ["scripting", "storage", "sidePanel", "tabs"],
   "host_permissions": ["https://*/*", "https://*/*"],
   "icons": {
-    "16": "shopr-favicon.png",
-    "48": "shopr-favicon.png",
-    "128": "shopr-favicon.png"
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   }
 }
