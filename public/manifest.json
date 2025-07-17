@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "version": "1.0.0",
-  "name": "Workplace",
+  "name": "Tabr",
   "action": {
     "default_title": "Click to open panel"
   },
@@ -9,7 +9,7 @@
     "default_path": "index.html"
   },
   "background": {
-    "service_worker": "script.js"
+    "service_worker": "background.js"
   },
   "permissions": ["scripting", "storage", "sidePanel", "tabs"],
   "host_permissions": ["https://*/*", "https://*/*"],

@@ -5,6 +5,8 @@ import { IoClose } from "react-icons/io5";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { TiDeleteOutline } from "react-icons/ti";
 import { localization } from "./localization";
+import ExtPay from "extpay";
+import { TbReportMoney } from "react-icons/tb";
 
 window.addEventListener(
   "dragover",
@@ -39,6 +41,15 @@ type langType = {
       text: string;
     }[];
   };
+  buttons: {
+    buy: string;
+    login: string;
+  };
+  texts: {
+    first: string;
+    second: string;
+  };
+  subscription: string;
 };
 
 function Workspace({
@@ -128,7 +139,7 @@ function Workspace({
 
   return (
     <>
-      <div className="bg-zinc-800 rounded-lg flex flex-col gap-2 overflow-hidden">
+      <div className="bg-zinc-800 rounded-lg flex flex-col gap-2 overflow-hidden shrink-0">
         <div
           className={`group grid grid-cols-[1fr_3fr_1fr] items-center ${
             toggle && "border-b border-y-zinc-600"
@@ -281,6 +292,7 @@ function App() {
   const [lang, setLang] = useState<"cs" | "en">("cs");
   const [texts, setTexts] = useState<langType>(localization.cs);
   const [adviceToggle, setAdviceToggle] = useState<boolean>(false);
+  const [status, setStatus] = useState<boolean>(false);
 
   useEffect(() => {
     async function getData() {
@@ -289,10 +301,23 @@ function App() {
       if (data != null) {
         setWorkspaces(data.workspaces);
       }
-    }
 
+      const langData = await chrome.storage.local.get({ lang });
+      if (langData != null) {
+        setLang(langData.lang);
+      }
+    }
     getData();
   }, []);
+
+  useEffect(() => {
+    if (lang == "cs") {
+      setTexts(localization.cs);
+    }
+    if (lang == "en") {
+      setTexts(localization.en);
+    }
+  }, [lang]);
 
   useEffect(() => {
     async function setData() {
@@ -303,15 +328,33 @@ function App() {
     setData();
   }, [workspaces]);
 
+  const extpay = ExtPay("tabr");
+
+  useEffect(() => {
+    async function extensionPay() {
+      try {
+        const user = await extpay.getUser();
+        console.log(user);
+        if (user.paid) {
+          setStatus(true);
+        } else {
+          setStatus(false);
+        }
+      } catch {}
+    }
+
+    extensionPay();
+  }, []);
+
   return (
     <>
       <div
-        className={`bg-zinc-900 min-h-screen grid grid-rows-[80px_1fr] font-mono text-white`}
+        className={`bg-zinc-900 h-screen grid grid-rows-[80px_1fr_80px] font-mono text-white`}
       >
         <div className="grid grid-cols-[1fr_3fr_1fr] items-center p-3">
           {adviceToggle && (
             <div className="absolute top-20 left-0 w-full p-2">
-              <div className="bg-zinc-800 p-5 rounded-lg flex flex-col gap-4">
+              <div className="bg-zinc-800 p-5 rounded-lg flex flex-col gap-4 border-2 border-zinc-700">
                 <p>{texts.advice.heading}</p>
                 {texts.advice.texts.map((item) => {
                   return (
@@ -336,17 +379,19 @@ function App() {
               ?
             </p>
           </div>
-          <p className="font-semibold text-xl col-start-2 justify-self-center">
-            LINKER
-          </p>
+          <div className="flex items-center gap-2 justify-center">
+            <p className="font-semibold text-xl col-start-2 justify-self-center">
+              TABR
+            </p>
+          </div>
           <p
             onClick={() => {
               if (lang == "cs") {
-                setTexts(localization.en);
                 setLang("en");
+                chrome.storage.local.set({ lang: "en" });
               } else {
-                setTexts(localization.cs);
                 setLang("cs");
+                chrome.storage.local.set({ lang: "cs" });
               }
             }}
             className="justify-self-end cursor-pointer hover:text-emerald-500"
@@ -354,42 +399,88 @@ function App() {
             {lang}
           </p>
         </div>
-        <div className="flex flex-col gap-5 items-stretch p-3">
-          {workspaces.map((item) => {
-            return (
-              <Workspace
-                key={item.name}
-                texts={texts}
-                workspaces={workspaces}
-                workspace={item}
-                setWorkspaces={setWorkspaces}
-              />
-            );
-          })}
-          <div className="flex w-full gap-5">
-            <input
-              onChange={(e) => {
-                setNewWorkspaceName(e.target.value);
-              }}
-              value={newWorkspaceName}
-              placeholder={texts.addWorkspacePlaceholder}
-              type="text"
-              className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg"
-            ></input>
+        {status ? (
+          <>
+            <div className="flex flex-col gap-5 items-stretch p-3 overflow-auto">
+              {workspaces.map((item) => {
+                return (
+                  <Workspace
+                    key={item.name}
+                    texts={texts}
+                    workspaces={workspaces}
+                    workspace={item}
+                    setWorkspaces={setWorkspaces}
+                  />
+                );
+              })}
+              <div className="flex w-full gap-5">
+                <input
+                  onKeyDown={(e) => {
+                    if (e.code == "Enter") {
+                      setWorkspaces([
+                        ...workspaces,
+                        {
+                          name: newWorkspaceName,
+                          urls: [],
+                          settings: "keepAll",
+                        },
+                      ]);
+                      setNewWorkspaceName("");
+                    }
+                  }}
+                  onChange={(e) => {
+                    setNewWorkspaceName(e.target.value);
+                  }}
+                  value={newWorkspaceName}
+                  placeholder={texts.addWorkspacePlaceholder}
+                  type="text"
+                  className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg"
+                ></input>
+                <p
+                  onClick={() => {
+                    setWorkspaces([
+                      ...workspaces,
+                      { name: newWorkspaceName, urls: [], settings: "keepAll" },
+                    ]);
+                    setNewWorkspaceName("");
+                  }}
+                  className="flex justify-center items-center text-3xl hover:text-emerald-500 cursor-pointer"
+                >
+                  +
+                </p>
+              </div>
+            </div>
             <p
               onClick={() => {
-                setWorkspaces([
-                  ...workspaces,
-                  { name: newWorkspaceName, urls: [], settings: "keepAll" },
-                ]);
-                setNewWorkspaceName("");
+                extpay.openPaymentPage();
               }}
-              className="flex justify-center items-center text-3xl hover:text-emerald-500 cursor-pointer"
+              className="cursor-pointer hover:text-emerald-500 flex items-center gap-2 justify-center"
             >
-              +
+              {texts.subscription} <TbReportMoney className="text-xl" />
             </p>
+          </>
+        ) : (
+          <div className="flex items-center justify-start flex-col gap-10 text-center p-3">
+            <button
+              onClick={() => {
+                extpay.openPaymentPage("tabr");
+              }}
+              className="p-3 bg-zinc-700 rounded-lg cursor-pointer hover:bg-zinc-600"
+            >
+              {texts.buttons.buy}
+            </button>
+            <button
+              onClick={() => {
+                extpay.openPaymentPage("tabr");
+              }}
+              className="p-3 bg-zinc-700 rounded-lg cursor-pointer hover:bg-zinc-600"
+            >
+              {texts.buttons.login}
+            </button>
+            <p>{texts.texts.first}</p>
+            <p>{texts.texts.second}</p>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
