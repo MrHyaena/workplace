@@ -99,13 +99,7 @@ function Workspace({
   return (
     <>
       <div className="bg-zinc-800 rounded-lg flex flex-col gap-5 overflow-hidden">
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            openTabs(urls);
-          }}
-          className="group grid grid-cols-[1fr_3fr_1fr] items-center cursor-pointer"
-        >
+        <div className="group grid grid-cols-[1fr_3fr_1fr] items-center">
           <CiLink
             onClick={(e) => {
               e.stopPropagation();
