@@ -213,33 +213,44 @@ function Workspace({
             }}
             className="text-zinc-200 text-2xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]"
           />
-          <div className="flex items-center gap-3 justify-self-center">
-            {changeNameToggle ? (
-              <input
-                ref={toggleWorkspaceNameInput}
-                onChange={(e) => {
-                  setWorkspaceName(e.target.value);
-                }}
-                value={workspaceName}
-                onKeyDown={(e) => {
-                  if (e.code == "Enter") {
-                    editWorkspace();
-                    setChangeNameToggle(false);
-                  }
-                }}
-                type="text"
-                className="max-w-20 font-semibold bg-zinc-800 border-2 border-zinc-700 rounded-md"
-              ></input>
-            ) : (
-              <p
-                onClick={() => {
-                  setChangeNameToggle(true);
-                }}
-                className=" font-semibold"
-              >
-                {workspaceName}
-              </p>
-            )}
+          <div className="flex items-center justify-start gap-3 justify-self-start ">
+            <div className="text-lg">
+              {settings == "keepAll" && <TbFolderStar className="" />}
+              {settings == "keepCurrent" && <TbFolderUp />}
+              {settings == "keepNone" && <TbFolderX />}
+            </div>
+            <div className="overflow-hidden max-w-30">
+              {" "}
+              {changeNameToggle ? (
+                <input
+                  ref={toggleWorkspaceNameInput}
+                  onChange={(e) => {
+                    setWorkspaceName(e.target.value);
+                  }}
+                  value={workspaceName}
+                  onKeyDown={(e) => {
+                    if (e.code == "Enter") {
+                      editWorkspace();
+                      setChangeNameToggle(false);
+                    }
+                  }}
+                  type="text"
+                  className="max-w-30 font-semibold bg-zinc-800 border-2 border-zinc-700 rounded-md px-2"
+                ></input>
+              ) : (
+                <p
+                  onClick={() => {
+                    setChangeNameToggle(true);
+                  }}
+                  className=" font-semibold text-nowrap"
+                >
+                  {workspaceName}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 justify-end">
+            {" "}
             <FaPen
               className="cursor-pointer hover:text-emerald-500 justify-self-end"
               onClick={(e) => {
@@ -247,38 +258,33 @@ function Workspace({
                 setToggle(!toggle);
               }}
             />
-            <div className="text-lg">
-              {settings == "keepAll" && <TbFolderStar className="" />}
-              {settings == "keepCurrent" && <TbFolderUp />}
-              {settings == "keepNone" && <TbFolderX />}
-            </div>
+            {toggleDelete ? (
+              <div className="flex justify-end mr-3 gap-3">
+                <MdKeyboardBackspace
+                  className="cursor-pointer hover:text-emerald-400 justify-self-end"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setToggleDelete(false);
+                  }}
+                />
+                <IoClose
+                  className="cursor-pointer hover:text-rose-400 justify-self-end"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteWorkspace();
+                  }}
+                />
+              </div>
+            ) : (
+              <TiDeleteOutline
+                className="cursor-pointer hover:text-rose-400 justify-self-end mr-3"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setToggleDelete(true);
+                }}
+              />
+            )}
           </div>
-          {toggleDelete ? (
-            <div className="flex justify-end mr-3 gap-3">
-              <MdKeyboardBackspace
-                className="cursor-pointer hover:text-emerald-400 justify-self-end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setToggleDelete(false);
-                }}
-              />
-              <IoClose
-                className="cursor-pointer hover:text-rose-400 justify-self-end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteWorkspace();
-                }}
-              />
-            </div>
-          ) : (
-            <TiDeleteOutline
-              className="cursor-pointer hover:text-rose-400 justify-self-end mr-3"
-              onClick={(e) => {
-                e.stopPropagation();
-                setToggleDelete(true);
-              }}
-            />
-          )}
         </div>
 
         {toggle && (
@@ -467,6 +473,42 @@ function App() {
     })
   );
 
+  async function createWorkspace() {
+    const active = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    const nonActive = await chrome.tabs.query({
+      active: false,
+      currentWindow: true,
+    });
+
+    const urls: string[] = [];
+
+    active.map((tab) => {
+      if (tab.url) {
+        urls.push(tab.url);
+      }
+    });
+
+    nonActive.map((tab) => {
+      if (tab.url) {
+        urls.push(tab.url);
+      }
+    });
+
+    setWorkspaces([
+      ...workspaces,
+      {
+        name: newWorkspaceName,
+        urls: urls,
+        settings: "keepAll",
+        id: Math.random() * 1000,
+      },
+    ]);
+    setNewWorkspaceName("");
+  }
+
   return (
     <>
       <div
@@ -555,7 +597,7 @@ function App() {
                 </SortableContext>
               </DndContext>
 
-              <div className="flex w-full gap-5">
+              <div className="grid grid-cols-2 w-full gap-5">
                 <input
                   onKeyDown={(e) => {
                     if (e.code == "Enter") {
@@ -577,9 +619,9 @@ function App() {
                   value={newWorkspaceName}
                   placeholder={texts.addWorkspacePlaceholder}
                   type="text"
-                  className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg"
+                  className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg col-span-2"
                 ></input>
-                <p
+                <button
                   onClick={() => {
                     setWorkspaces([
                       ...workspaces,
@@ -592,10 +634,18 @@ function App() {
                     ]);
                     setNewWorkspaceName("");
                   }}
-                  className="flex justify-center items-center text-3xl hover:text-emerald-500 cursor-pointer"
+                  className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
                 >
-                  +
-                </p>
+                  Přidat prázdný workspace
+                </button>
+                <button
+                  onClick={() => {
+                    createWorkspace();
+                  }}
+                  className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
+                >
+                  Vytvořit ze současných záložek
+                </button>
               </div>
             </div>
             <p
