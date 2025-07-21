@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { CiLink } from "react-icons/ci";
+import React, { useEffect, useRef, useState } from "react";
 import { FaPen } from "react-icons/fa";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoFolderOpenOutline } from "react-icons/io5";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { TiDeleteOutline } from "react-icons/ti";
 import { localization } from "./localization";
 import ExtPay from "extpay";
-import { TbReportMoney } from "react-icons/tb";
+import {
+  TbFolderStar,
+  TbFolderUp,
+  TbFolderX,
+  TbReportMoney,
+} from "react-icons/tb";
 
 window.addEventListener(
   "dragover",
@@ -71,6 +75,27 @@ function Workspace({
     "keepAll" | "keepCurrent" | "keepNone"
   >(workspace.settings);
   const [link, setLink] = useState<string>("");
+  const [changeNameToggle, setChangeNameToggle] = useState<boolean>(false);
+  const [workspaceName, setWorkspaceName] = useState<string>(workspace.name);
+
+  const toggleWorkspaceNameInput = useRef<HTMLInputElement | null>(null);
+
+  function handleClickOutside(e: MouseEvent) {
+    if (
+      toggleWorkspaceNameInput.current &&
+      !toggleWorkspaceNameInput.current.contains(e.target as Node)
+    ) {
+      setChangeNameToggle(false);
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   function deleteUrl(item: string) {
     const newArray = urls.filter((url) => item != url);
@@ -126,7 +151,7 @@ function Workspace({
     }
   }
 
-  useEffect(() => {
+  function editWorkspace() {
     const workspacesArray = workspaces;
     const workspaceIndex = workspaces.findIndex(
       (item: workspaceType) => item.name == workspace.name
@@ -134,8 +159,13 @@ function Workspace({
 
     workspacesArray[workspaceIndex].urls = urls;
     workspacesArray[workspaceIndex].settings = settings;
+    workspacesArray[workspaceIndex].name = workspaceName;
     setWorkspaces([...workspacesArray]);
-  }, [urls, settings]);
+  }
+
+  useEffect(() => {
+    editWorkspace();
+  }, [urls, settings, changeNameToggle]);
 
   return (
     <>
@@ -145,15 +175,40 @@ function Workspace({
             toggle && "border-b border-y-zinc-600"
           }`}
         >
-          <CiLink
+          <IoFolderOpenOutline
             onClick={(e) => {
               e.stopPropagation();
               openTabs(urls);
             }}
-            className="text-zinc-200 text-3xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]"
+            className="text-zinc-200 text-2xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]"
           />
           <div className="flex items-center gap-3 justify-self-center">
-            <p className=" font-semibold ">{workspace.name}</p>
+            {changeNameToggle ? (
+              <input
+                ref={toggleWorkspaceNameInput}
+                onChange={(e) => {
+                  setWorkspaceName(e.target.value);
+                }}
+                value={workspaceName}
+                onKeyDown={(e) => {
+                  if (e.code == "Enter") {
+                    editWorkspace();
+                    setChangeNameToggle(false);
+                  }
+                }}
+                type="text"
+                className="max-w-20 font-semibold bg-zinc-800 border-2 border-zinc-700 rounded-md"
+              ></input>
+            ) : (
+              <p
+                onClick={() => {
+                  setChangeNameToggle(true);
+                }}
+                className=" font-semibold"
+              >
+                {workspaceName}
+              </p>
+            )}
             <FaPen
               className="cursor-pointer hover:text-emerald-500 justify-self-end"
               onClick={(e) => {
@@ -161,11 +216,11 @@ function Workspace({
                 setToggle(!toggle);
               }}
             />
-            <p className=" font-semibold">
-              {settings == "keepAll" && "A"}
-              {settings == "keepCurrent" && "C"}
-              {settings == "keepNone" && "N"}
-            </p>
+            <div className="text-lg">
+              {settings == "keepAll" && <TbFolderStar className="" />}
+              {settings == "keepCurrent" && <TbFolderUp />}
+              {settings == "keepNone" && <TbFolderX />}
+            </div>
           </div>
           {toggleDelete ? (
             <div className="flex justify-end mr-3 gap-3">
@@ -197,37 +252,46 @@ function Workspace({
 
         {toggle && (
           <>
-            <div className="flex items-center justify-center gap-2 font-semibold">
-              <p
-                onClick={() => {
-                  setSettings("keepNone");
-                }}
-                className={`${
-                  settings == "keepNone" ? "text-emerald-500" : ""
-                } cursor-pointer`}
-              >
-                N
-              </p>
-              <p
-                onClick={() => {
-                  setSettings("keepCurrent");
-                }}
-                className={`${
-                  settings == "keepCurrent" ? "text-emerald-500" : ""
-                } cursor-pointer`}
-              >
-                C
-              </p>
-              <p
-                onClick={() => {
-                  setSettings("keepAll");
-                }}
-                className={`${
-                  settings == "keepAll" ? "text-emerald-500" : ""
-                } cursor-pointer`}
-              >
-                A
-              </p>
+            <div className="flex items-center justify-center gap-2 font-semibold text-lg">
+              <div className="group relative">
+                <TbFolderStar
+                  onClick={() => {
+                    setSettings("keepAll");
+                  }}
+                  className={`${
+                    settings == "keepAll" ? "text-emerald-500" : ""
+                  } cursor-pointer`}
+                />
+                <p className="group-hover:block hidden text-[10px] absolute top-5 bg-zinc-500 p-1 rounded-md">
+                  Ponechat všechny záložky
+                </p>
+              </div>
+              <div className="group relative">
+                <TbFolderUp
+                  onClick={() => {
+                    setSettings("keepCurrent");
+                  }}
+                  className={`${
+                    settings == "keepCurrent" ? "text-emerald-500" : ""
+                  } cursor-pointer`}
+                />
+                <p className="group-hover:block hidden text-[10px] absolute top-5 bg-zinc-500 p-1 rounded-md">
+                  Zavřít záložky kromě současné
+                </p>
+              </div>
+              <div className="group relative">
+                <TbFolderX
+                  onClick={() => {
+                    setSettings("keepNone");
+                  }}
+                  className={`${
+                    settings == "keepNone" ? "text-emerald-500" : ""
+                  } cursor-pointer`}
+                />
+                <p className="group-hover:block hidden text-[10px] absolute top-5 bg-zinc-500 p-1 rounded-md">
+                  Zavřít všechny záložky
+                </p>
+              </div>
             </div>
             <div className="flex flex-col items-stretch p-2">
               <input
@@ -264,7 +328,7 @@ function Workspace({
                     className="grid grid-cols-[4fr_1fr] items-center py-2"
                   >
                     <div className="overflow-hidden">
-                      <a href={item} className="text-nowrap">
+                      <a href={item} target="_blank" className="text-nowrap">
                         {item}
                       </a>
                     </div>
@@ -296,13 +360,13 @@ function App() {
 
   useEffect(() => {
     async function getData() {
-      const data = await chrome.storage.local.get({ workspaces });
+      const data = await chrome.storage.sync.get({ workspaces });
       console.log("getData", data.workspaces);
       if (data != null) {
         setWorkspaces(data.workspaces);
       }
 
-      const langData = await chrome.storage.local.get({ lang });
+      const langData = await chrome.storage.sync.get({ lang });
       if (langData != null) {
         setLang(langData.lang);
       }
@@ -321,7 +385,7 @@ function App() {
 
   useEffect(() => {
     async function setData() {
-      const data = await chrome.storage.local.set({ workspaces: workspaces });
+      const data = await chrome.storage.sync.set({ workspaces: workspaces });
       console.log("setData", data);
     }
 
@@ -359,7 +423,11 @@ function App() {
                 {texts.advice.texts.map((item) => {
                   return (
                     <div key={item.letter} className="flex gap-2">
-                      <p>{item.letter}:</p>
+                      <div className="text-lg">
+                        {item.letter == "A" && <TbFolderStar className="" />}
+                        {item.letter == "C" && <TbFolderUp />}
+                        {item.letter == "N" && <TbFolderX />}
+                      </div>
                       <p>{item.text}</p>
                     </div>
                   );
@@ -388,10 +456,10 @@ function App() {
             onClick={() => {
               if (lang == "cs") {
                 setLang("en");
-                chrome.storage.local.set({ lang: "en" });
+                chrome.storage.sync.set({ lang: "en" });
               } else {
                 setLang("cs");
-                chrome.storage.local.set({ lang: "cs" });
+                chrome.storage.sync.set({ lang: "cs" });
               }
             }}
             className="justify-self-end cursor-pointer hover:text-emerald-500"
