@@ -1,6 +1,6 @@
 export const localization = {
   cs: {
-    addWorkspacePlaceholder: "Přidejte workspace",
+    addWorkspacePlaceholder: "Jméno pracovního prostoru",
     addLinkPlaceholder: "Zde vložte/napište odkaz",
     advice: {
       heading: "Ovládání",
@@ -28,6 +28,9 @@ export const localization = {
     buttons: {
       buy: "Koupit licenci",
       login: "Aktivovat",
+      addWorkspaceEmpty: "Vytvořit prázdný pracovní prostor",
+      addWorkspaceTabs: "Vytvořit ze současných záložek",
+      addWorkspaceCancel: "Zrušit",
     },
     texts: {
       first: `Licence dává plný přístup k rozšíření. Cena je 100 korun ročně. Pokud se již o rozšíření
@@ -42,7 +45,7 @@ export const localization = {
   },
 
   en: {
-    addWorkspacePlaceholder: "Add workspace",
+    addWorkspacePlaceholder: "Workspace name",
     addLinkPlaceholder: "Insert or drop link",
     advice: {
       heading: "Controls",
@@ -70,6 +73,9 @@ export const localization = {
     buttons: {
       buy: "Get a license",
       login: "Activate",
+      addWorkspaceEmpty: "Create empty workspace",
+      addWorkspaceTabs: "Create workspace from current tabs",
+      addWorkspaceCancel: "Cancel",
     },
     texts: {
       first:

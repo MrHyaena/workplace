@@ -69,6 +69,9 @@ type langType = {
   buttons: {
     buy: string;
     login: string;
+    addWorkspaceEmpty: string;
+    addWorkspaceTabs: string;
+    addWorkspaceCancel: string;
   };
   texts: {
     first: string;
@@ -394,6 +397,7 @@ function App() {
   const [texts, setTexts] = useState<langType>(localization.cs);
   const [adviceToggle, setAdviceToggle] = useState<boolean>(false);
   const [status, setStatus] = useState<boolean>(false);
+  const [addWorkspaceToggle, setAddWorkspaceToggle] = useState<boolean>(false);
 
   useEffect(() => {
     async function getData() {
@@ -597,10 +601,33 @@ function App() {
                 </SortableContext>
               </DndContext>
 
-              <div className="grid grid-cols-2 w-full gap-5">
-                <input
-                  onKeyDown={(e) => {
-                    if (e.code == "Enter") {
+              {addWorkspaceToggle ? (
+                <div className="grid grid-cols-2 w-full gap-5">
+                  <input
+                    onKeyDown={(e) => {
+                      if (e.code == "Enter") {
+                        setWorkspaces([
+                          ...workspaces,
+                          {
+                            name: newWorkspaceName,
+                            urls: [],
+                            settings: "keepAll",
+                            id: Math.random() * 1000,
+                          },
+                        ]);
+                        setNewWorkspaceName("");
+                      }
+                    }}
+                    onChange={(e) => {
+                      setNewWorkspaceName(e.target.value);
+                    }}
+                    value={newWorkspaceName}
+                    placeholder={texts.addWorkspacePlaceholder}
+                    type="text"
+                    className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg col-span-2"
+                  ></input>
+                  <button
+                    onClick={() => {
                       setWorkspaces([
                         ...workspaces,
                         {
@@ -611,42 +638,42 @@ function App() {
                         },
                       ]);
                       setNewWorkspaceName("");
-                    }
-                  }}
-                  onChange={(e) => {
-                    setNewWorkspaceName(e.target.value);
-                  }}
-                  value={newWorkspaceName}
-                  placeholder={texts.addWorkspacePlaceholder}
-                  type="text"
-                  className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg col-span-2"
-                ></input>
-                <button
-                  onClick={() => {
-                    setWorkspaces([
-                      ...workspaces,
-                      {
-                        name: newWorkspaceName,
-                        urls: [],
-                        settings: "keepAll",
-                        id: Math.random() * 1000,
-                      },
-                    ]);
-                    setNewWorkspaceName("");
-                  }}
-                  className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
-                >
-                  Přidat prázdný workspace
-                </button>
-                <button
-                  onClick={() => {
-                    createWorkspace();
-                  }}
-                  className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
-                >
-                  Vytvořit ze současných záložek
-                </button>
-              </div>
+                      setAddWorkspaceToggle(false);
+                    }}
+                    className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
+                  >
+                    {texts.buttons.addWorkspaceEmpty}
+                  </button>
+                  <button
+                    onClick={() => {
+                      createWorkspace();
+                      setAddWorkspaceToggle(false);
+                    }}
+                    className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
+                  >
+                    {texts.buttons.addWorkspaceTabs}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAddWorkspaceToggle(false);
+                    }}
+                    className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg col-span-2"
+                  >
+                    {texts.buttons.addWorkspaceCancel}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center justify-self-center">
+                  <button
+                    onClick={() => {
+                      setAddWorkspaceToggle(true);
+                    }}
+                    className="text-3xl hover:text-emerald-500 cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
             </div>
             <p
               onClick={() => {
