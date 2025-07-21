@@ -11,6 +11,26 @@ import {
   TbFolderX,
   TbReportMoney,
 } from "react-icons/tb";
+import {
+  closestCenter,
+  DndContext,
+  MouseSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  restrictToFirstScrollableAncestor,
+  restrictToVerticalAxis,
+} from "@dnd-kit/modifiers";
 
 window.addEventListener(
   "dragover",
@@ -31,6 +51,7 @@ type workspaceType = {
   settings: "keepAll" | "keepCurrent" | "keepNone";
   name: string;
   urls: string[];
+  id: UniqueIdentifier;
 };
 
 type workspacesType = workspaceType[];
@@ -77,6 +98,8 @@ function Workspace({
   const [link, setLink] = useState<string>("");
   const [changeNameToggle, setChangeNameToggle] = useState<boolean>(false);
   const [workspaceName, setWorkspaceName] = useState<string>(workspace.name);
+  const { attributes, listeners, transform, transition, setNodeRef } =
+    useSortable({ id: workspace.id });
 
   const toggleWorkspaceNameInput = useRef<HTMLInputElement | null>(null);
 
@@ -167,9 +190,17 @@ function Workspace({
     editWorkspace();
   }, [urls, settings, changeNameToggle]);
 
+  const style = { transition, transform: CSS.Transform.toString(transform) };
+
   return (
     <>
-      <div className="bg-zinc-800 rounded-lg flex flex-col gap-2 overflow-hidden shrink-0">
+      <div
+        style={style}
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
+        className="bg-zinc-800 rounded-lg flex flex-col gap-2 overflow-hidden shrink-0"
+      >
         <div
           className={`group grid grid-cols-[1fr_3fr_1fr] items-center ${
             toggle && "border-b border-y-zinc-600"
@@ -410,6 +441,32 @@ function App() {
     extensionPay();
   }, []);
 
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+
+    if (!over || active.id === over.id) {
+      return;
+    } else {
+      setWorkspaces((workspaces) => {
+        const originalPost = workspaces.findIndex(
+          (workspace) => workspace.id === active.id
+        );
+        const newPost = workspaces.findIndex(
+          (workspace) => workspace.id === over.id
+        );
+        return arrayMove(workspaces, originalPost, newPost);
+      });
+    }
+  }
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
   return (
     <>
       <div
@@ -470,17 +527,33 @@ function App() {
         {status ? (
           <>
             <div className="flex flex-col gap-5 items-stretch p-3 overflow-auto">
-              {workspaces.map((item) => {
-                return (
-                  <Workspace
-                    key={item.name}
-                    texts={texts}
-                    workspaces={workspaces}
-                    workspace={item}
-                    setWorkspaces={setWorkspaces}
-                  />
-                );
-              })}
+              <DndContext
+                sensors={sensors}
+                onDragEnd={handleDragEnd}
+                collisionDetection={closestCenter}
+                modifiers={[
+                  restrictToVerticalAxis,
+                  restrictToFirstScrollableAncestor,
+                ]}
+              >
+                <SortableContext
+                  items={workspaces.map((workspace) => workspace.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {workspaces.map((item) => {
+                    return (
+                      <Workspace
+                        key={item.name}
+                        texts={texts}
+                        workspaces={workspaces}
+                        workspace={item}
+                        setWorkspaces={setWorkspaces}
+                      />
+                    );
+                  })}
+                </SortableContext>
+              </DndContext>
+
               <div className="flex w-full gap-5">
                 <input
                   onKeyDown={(e) => {
@@ -491,6 +564,7 @@ function App() {
                           name: newWorkspaceName,
                           urls: [],
                           settings: "keepAll",
+                          id: Math.random() * 1000,
                         },
                       ]);
                       setNewWorkspaceName("");
@@ -508,7 +582,12 @@ function App() {
                   onClick={() => {
                     setWorkspaces([
                       ...workspaces,
-                      { name: newWorkspaceName, urls: [], settings: "keepAll" },
+                      {
+                        name: newWorkspaceName,
+                        urls: [],
+                        settings: "keepAll",
+                        id: Math.random() * 1000,
+                      },
                     ]);
                     setNewWorkspaceName("");
                   }}
