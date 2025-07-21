@@ -6,6 +6,18 @@ export const localization = {
       heading: "Ovládání",
       texts: [
         {
+          letter: "F",
+          text: "Velká ikona složky vykoná akci pracovního prostoru (otevře/zavře záložky).",
+        },
+        {
+          letter: "Z",
+          text: "Jméno pracovního prostoru lze upravit kliknutím na jméno. Ukládá se kliknutím na enter nebo kliknutím myši mimo název.",
+        },
+        {
+          letter: "Z",
+          text: "Pracovní prostory lze přeskládat chytnutím a tažením.",
+        },
+        {
           letter: "N",
           text: "Zavře všechny otevřené záložky a otevře workspace.",
         },
@@ -35,6 +47,18 @@ export const localization = {
     advice: {
       heading: "Controls",
       texts: [
+        {
+          letter: "F",
+          text: "The large folder icon performs the workspace action (opens/closes tabs).",
+        },
+        {
+          letter: "Z",
+          text: "The workspace name can be edited by clicking on it. Changes are saved by pressing Enter or clicking outside the name field.",
+        },
+        {
+          letter: "Z",
+          text: "Workspaces can be rearranged by dragging and dropping.",
+        },
         {
           letter: "N",
           text: "Closes all opend tabs.",

@@ -481,7 +481,8 @@ function App() {
                   return (
                     <div key={item.letter} className="flex gap-2">
                       <div className="text-lg">
-                        {item.letter == "A" && <TbFolderStar className="" />}
+                        {item.letter == "F" && <IoFolderOpenOutline />}
+                        {item.letter == "A" && <TbFolderStar />}
                         {item.letter == "C" && <TbFolderUp />}
                         {item.letter == "N" && <TbFolderX />}
                       </div>
