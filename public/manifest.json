@@ -9,10 +9,11 @@
     "default_path": "index.html"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "permissions": ["scripting", "storage", "sidePanel", "tabs"],
-  "host_permissions": ["https://*/*", "https://*/*"],
+  "host_permissions": ["https://*/*", "http://*/*"],
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
