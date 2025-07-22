@@ -1,7 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
-import { FaPen } from "react-icons/fa";
-import { IoClose, IoFolderOpenOutline } from "react-icons/io5";
-import { MdKeyboardBackspace } from "react-icons/md";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  FaBook,
+  FaDatabase,
+  FaPen,
+  FaPenAlt,
+  FaRegSmile,
+  FaToolbox,
+  FaUmbrellaBeach,
+} from "react-icons/fa";
+import { IoClose, IoFolderOpenOutline, IoSearch } from "react-icons/io5";
+import {
+  MdKeyboardBackspace,
+  MdLaptopChromebook,
+  MdMovie,
+  MdSportsScore,
+} from "react-icons/md";
 import { TiDeleteOutline } from "react-icons/ti";
 import { localization } from "./localization";
 import ExtPay from "extpay";
@@ -10,6 +23,7 @@ import {
   TbFolderUp,
   TbFolderX,
   TbReportMoney,
+  TbToolsKitchen2,
 } from "react-icons/tb";
 import {
   closestCenter,
@@ -31,6 +45,9 @@ import {
   restrictToFirstScrollableAncestor,
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
+import { FaCartShopping, FaHouseChimney, FaPerson } from "react-icons/fa6";
+import { FiTool } from "react-icons/fi";
+import { RiTeamFill } from "react-icons/ri";
 
 window.addEventListener(
   "dragover",
@@ -47,11 +64,226 @@ window.addEventListener(
   false
 );
 
+const iconsData: {
+  code: string;
+  el: (className: string, onClick: () => void) => ReactNode;
+}[] = [
+  {
+    code: "pen",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaPenAlt
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "pc",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <MdLaptopChromebook
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "book",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaBook
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "cart",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaCartShopping
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "house",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaHouseChimney
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "umbrella",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaUmbrellaBeach
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "kitchen",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <TbToolsKitchen2
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "tool",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FiTool
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "toolbox",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaToolbox
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "search",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <IoSearch
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "smile",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaRegSmile
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "database",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaDatabase
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "movie",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <MdMovie
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "finish",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <MdSportsScore
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "person",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <FaPerson
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+  {
+    code: "team",
+    el: (classname: string, clickFunction: () => void) => {
+      return (
+        <RiTeamFill
+          className={classname}
+          onClick={() => {
+            clickFunction();
+          }}
+        />
+      );
+    },
+  },
+];
+
 type workspaceType = {
   settings: "keepAll" | "keepCurrent" | "keepNone";
   name: string;
   urls: string[];
   id: UniqueIdentifier;
+  icon: string;
 };
 
 type workspacesType = workspaceType[];
@@ -195,6 +427,25 @@ function Workspace({
 
   const style = { transition, transform: CSS.Transform.toString(transform) };
 
+  function findIcon() {
+    const icon = iconsData.find((icon) => icon.code == workspace.icon);
+    if (icon) {
+      return icon?.el(
+        "text-zinc-200 text-2xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]",
+        () => {
+          openTabs(urls);
+        }
+      );
+    } else {
+      <IoFolderOpenOutline
+        className="text-zinc-200 text-2xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]"
+        onClick={() => {
+          openTabs(urls);
+        }}
+      />;
+    }
+  }
+
   return (
     <>
       <div
@@ -209,13 +460,7 @@ function Workspace({
             toggle && "border-b border-y-zinc-600"
           }`}
         >
-          <IoFolderOpenOutline
-            onClick={(e) => {
-              e.stopPropagation();
-              openTabs(urls);
-            }}
-            className="text-zinc-200 text-2xl hover:bg-zinc-600  cursor-pointer bg-zinc-700 min-h-12 min-w-12 p-[10px]"
-          />
+          {findIcon()}
           <div className="flex items-center justify-start gap-3 justify-self-start ">
             <div className="text-lg">
               {settings == "keepAll" && <TbFolderStar className="" />}
@@ -398,6 +643,10 @@ function App() {
   const [adviceToggle, setAdviceToggle] = useState<boolean>(false);
   const [status, setStatus] = useState<boolean>(false);
   const [addWorkspaceToggle, setAddWorkspaceToggle] = useState<boolean>(false);
+  const [workspaceIcon, setWorkspaceIcon] = useState<{
+    code: string;
+    el: (className: string, clickFunction: () => void) => ReactNode;
+  }>(iconsData[0]);
 
   useEffect(() => {
     async function getData() {
@@ -508,6 +757,7 @@ function App() {
         urls: urls,
         settings: "keepAll",
         id: Math.random() * 1000,
+        icon: workspaceIcon.code,
       },
     ]);
     setNewWorkspaceName("");
@@ -602,7 +852,7 @@ function App() {
               </DndContext>
 
               {addWorkspaceToggle ? (
-                <div className="grid grid-cols-2 w-full gap-5">
+                <div className="grid grid-cols-2 grid-rows-[1fr_50px_1fr_fr] w-full gap-5">
                   <input
                     onKeyDown={(e) => {
                       if (e.code == "Enter") {
@@ -613,6 +863,7 @@ function App() {
                             urls: [],
                             settings: "keepAll",
                             id: Math.random() * 1000,
+                            icon: workspaceIcon.code,
                           },
                         ]);
                         setNewWorkspaceName("");
@@ -626,6 +877,22 @@ function App() {
                     type="text"
                     className="p-2 bg-zinc-800 border-2 border-zinc-700 w-full rounded-lg col-span-2"
                   ></input>
+                  <div className="col-span-2 text-xl flex flex-wrap gap-3 justify-center">
+                    {iconsData.map((icon) => {
+                      if (workspaceIcon.code == icon.code) {
+                        return icon.el(
+                          "text-emerald-500 cursor-pointer",
+                          () => {
+                            setWorkspaceIcon(icon);
+                          }
+                        );
+                      } else {
+                        return icon.el("cursor-pointer", () => {
+                          setWorkspaceIcon(icon);
+                        });
+                      }
+                    })}
+                  </div>
                   <button
                     onClick={() => {
                       setWorkspaces([
@@ -635,9 +902,11 @@ function App() {
                           urls: [],
                           settings: "keepAll",
                           id: Math.random() * 1000,
+                          icon: workspaceIcon.code,
                         },
                       ]);
                       setNewWorkspaceName("");
+                      setWorkspaceIcon(iconsData[0]);
                       setAddWorkspaceToggle(false);
                     }}
                     className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
@@ -647,7 +916,9 @@ function App() {
                   <button
                     onClick={() => {
                       createWorkspace();
+                      setNewWorkspaceName("");
                       setAddWorkspaceToggle(false);
+                      setWorkspaceIcon(iconsData[0]);
                     }}
                     className="flex justify-center items-center hover:bg-zinc-700 cursor-pointer py-2 px-1 bg-zinc-800 rounded-lg"
                   >
