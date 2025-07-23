@@ -377,9 +377,12 @@ function Workspace({
   function deleteWorkspace() {
     const workspacesArray = workspaces;
     const workspaceIndex = workspaces.findIndex(
-      (item: workspaceType) => item.name == workspace.name
+      (item: workspaceType) => item.id == workspace.id
     );
+    console.log(workspaceIndex);
+    console.log("bef", workspacesArray);
     workspacesArray.splice(workspaceIndex, 1);
+    console.log("aft", workspacesArray);
 
     setWorkspaces([...workspacesArray]);
   }
@@ -445,6 +448,8 @@ function Workspace({
       />;
     }
   }
+
+  console.log(toggleDelete);
 
   return (
     <>
@@ -840,7 +845,7 @@ function App() {
                   {workspaces.map((item) => {
                     return (
                       <Workspace
-                        key={item.name}
+                        key={item.id}
                         texts={texts}
                         workspaces={workspaces}
                         workspace={item}
