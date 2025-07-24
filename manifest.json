@@ -12,8 +12,7 @@
     "service_worker": "src/background.js",
     "type": "module"
   },
-  "permissions": ["scripting", "storage", "sidePanel", "tabs"],
-  "host_permissions": ["https://*/*"],
+  "permissions": ["storage", "sidePanel", "tabs"],
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
